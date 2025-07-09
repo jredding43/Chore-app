@@ -9,7 +9,6 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "version:patch": "npm version patch && npm run build",
-    "start": "react-scripts start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
