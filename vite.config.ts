@@ -8,12 +8,6 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: [
-        'favicon.svg',
-        'favicon.ico',
-        'robots.txt',
-        'apple-touch-icon.png'
-      ],
       manifest: {
         name: 'My Tablet App',
         short_name: 'TabletApp',
