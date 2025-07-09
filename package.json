@@ -11,7 +11,7 @@
     "version:patch": "npm version patch && npm run build",
     "start": "react-scripts start",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.1",
