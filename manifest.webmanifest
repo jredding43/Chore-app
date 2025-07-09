@@ -1,0 +1,1 @@
+{"name":"My Tablet App","short_name":"TabletApp","start_url":"/Chore-app/","display":"standalone","background_color":"#ffffff","theme_color":"#4f46e5","lang":"en","scope":"/Chore-app/","icons":[{"src":"/Chore-app/pwa-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/Chore-app/pwa-512x512.png","sizes":"512x512","type":"image/png"}]}
