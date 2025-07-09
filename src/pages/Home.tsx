@@ -89,7 +89,7 @@ const resetDatabase = async () => {
     {/* Reset Button */}
     <button
       onClick={resetDatabase}
-      className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-xl transition mt-2 shadow"
+      className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-xl transition mt-2 shadow hidden"
     >
       🧹 Reset Database
     </button>

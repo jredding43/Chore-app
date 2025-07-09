@@ -83,7 +83,7 @@ const ProfilePage: React.FC = () => {
         [choreId: number]: { status: 'completed' | 'rejected' | 'not completed'; reason?: string };
       } = {};
       statuses.forEach(s => {
-        map[s.choreId] = { status: s.status, reason: s.reason }; // assumes `s.reason` is stored in DB
+        map[s.choreId] = { status: s.status, reason: s.reason }; 
       });
 
       setChoreStatusMap(map);
@@ -243,10 +243,18 @@ const handleSubmitWorkbook = async (bookId: number) => {
               alert('Incorrect PIN');
             }
           }}
-          className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg"
+          className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg mb-5"
         >
           Unlock Profile
         </button>
+
+        <button
+          onClick={() => navigate('/')}
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg"
+        >
+          ← Back to Home
+        </button>
+
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChoreTemplate } from '../types/chore';
+import { useNavigate } from 'react-router-dom';
 import { KidProfile } from '../types/kids';
 import { WoodBook } from '../types/workbooks';
 import { db } from '../db';
@@ -19,6 +20,7 @@ const daysOfWeek = [
 
 
 const Manager: React.FC = () => {
+  const navigate = useNavigate();
   const [chores, setChores] = useState<ChoreTemplate[]>([]);
   const [extraChores, setExtraChores] = useState<ExtraChoreTemplate[]>([]);
   const [kids, setKids] = useState<KidProfile[]>([]);
@@ -169,7 +171,7 @@ const Manager: React.FC = () => {
   if (!authorized) {
   return (
     <main className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-6">
-      <div className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm text-center space-y-4">
+      <div className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm text-center space-y-6">
         <h1 className="text-2xl font-bold text-yellow-300">Enter Manager PIN</h1>
         <input
           type="password"
@@ -178,20 +180,31 @@ const Manager: React.FC = () => {
           className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-center"
           placeholder="Enter PIN"
         />
-        <button
-          onClick={() => {
-            if (pinInput === correctPin) {
-              setAuthorized(true);
-            } else {
-              alert('Incorrect PIN');
-            }
-          }}
-          className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg"
-        >
-          Unlock
-        </button>
+
+        <div className="space-y-4">
+          <button
+            onClick={() => {
+              if (pinInput === correctPin) {
+                setAuthorized(true);
+              } else {
+                alert('Incorrect PIN');
+              }
+            }}
+            className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg mb-5"
+          >
+            Unlock
+          </button>
+
+          <button
+            onClick={() => navigate('/')}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl shadow"
+          >
+            ← Back to Home
+          </button>
+        </div>
       </div>
     </main>
+
   );
 }
 
