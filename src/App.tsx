@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Home from "./pages/Home";
@@ -11,6 +12,19 @@ import { PointsStore } from "./components/PointStore";
 import Rewards from "./pages/Rewards";
 
 const App: React.FC = () => {
+  useEffect(() => {
+    const initialDate = new Date().toDateString();
+
+    const interval = setInterval(() => {
+      const currentDate = new Date().toDateString();
+      if (currentDate !== initialDate) {
+        window.location.reload();
+      }
+    }, 60000); // checks every 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <HelmetProvider>
       <Router>
@@ -22,9 +36,8 @@ const App: React.FC = () => {
           <Route path="/workbook" element={<ReviewWorkbook />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/extrachores" element={<ReviewExtraChores />} />
-          <Route path="/store/:id" element={<PointsStore />} /> 
+          <Route path="/store/:id" element={<PointsStore />} />
           <Route path="/rewards" element={<Rewards />} />
-
         </Routes>
       </Router>
     </HelmetProvider>

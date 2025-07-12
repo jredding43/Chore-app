@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KidProfile } from '../types/kids';
 import { ChoreTemplate } from '../types/chore';
-import { db, PendingReward } from '../db';
+import { db, PendingReward, ChoreStatus } from '../db';
 import { WoodBook, WorkbookAssignment } from '../types/workbooks';
 import { ExtraChoreTemplate, ExtraChoreAssignment } from '../types/extrachores';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -81,12 +81,18 @@ const ProfilePage: React.FC = () => {
 
       const map: {
         [choreId: number]: { status: 'completed' | 'rejected' | 'not completed'; reason?: string };
-      } = {};
-      statuses.forEach(s => {
-        map[s.choreId] = { status: s.status, reason: s.reason }; 
+        } = {};
+        statuses.forEach(s => {
+          map[s.choreId] = { status: s.status, reason: s.reason }; 
       });
 
       setChoreStatusMap(map);
+
+      const initialChecked: Record<number, boolean> = {};
+        statuses.forEach((s) => {
+          initialChecked[s.choreId] = s.status === 'completed';
+      });
+      setCheckedChores(initialChecked);
     };
 
     load();
@@ -216,12 +222,75 @@ const handleSubmitWorkbook = async (bookId: number) => {
     );
   }
 
-  const toggleChoreCheck = (choreId: number) => {
+  const toggleChoreCheck = async (choreId: number) => {
+    if (!kid) return;
+
+    const current = checkedChores[choreId];
+    const newChecked = !current;
+
     setCheckedChores(prev => ({
       ...prev,
-      [choreId]: !prev[choreId],
+      [choreId]: newChecked,
     }));
+
+    const status: ChoreStatus = {
+      id: `${kid.id}-${choreId}-${todayDate}`,
+      kidId: kid.id,
+      choreId,
+      date: todayDate,
+      status: newChecked ? 'completed' : 'not completed',
+    };
+
+    await db.choreStatuses.put(status);
+
+    const chore = todaysChores.find(c => c.id === choreId);
+    if (!chore) return;
+
+    const updatedKid = await db.kidProfiles.get(kid.id);
+    if (!updatedKid) return;
+
+    // Award points only if just completed now
+    if (newChecked && status.status === 'completed') {
+      const newPoints = (updatedKid.points ?? 0) + chore.points;
+      const newLifetime = (updatedKid.lifetimePoints ?? 0) + chore.points;
+      const completedChores = (updatedKid.completedChores ?? 0) + 1;
+
+      await db.kidProfiles.update(kid.id, {
+        points: newPoints,
+        lifetimePoints: newLifetime,
+        completedChores,
+      });
+
+      setKid({
+        ...updatedKid,
+        points: newPoints,
+        lifetimePoints: newLifetime,
+        completedChores,
+      });
+    }
+
+    // Optional: If chore was unchecked, revert stats
+    if (!newChecked && status.status === 'not completed') {
+      const newPoints = Math.max(0, (updatedKid.points ?? 0) - chore.points);
+      const newLifetime = Math.max(0, (updatedKid.lifetimePoints ?? 0) - chore.points);
+      const completedChores = Math.max(0, (updatedKid.completedChores ?? 0) - 1);
+
+      await db.kidProfiles.update(kid.id, {
+        points: newPoints,
+        lifetimePoints: newLifetime,
+        completedChores,
+      });
+
+      setKid({
+        ...updatedKid,
+        points: newPoints,
+        lifetimePoints: newLifetime,
+        completedChores,
+      });
+    }
   };
+
+
 
   if (!authorized) {
   return (
@@ -291,36 +360,45 @@ const handleSubmitWorkbook = async (bookId: number) => {
 
         {/*  Pending Rewards Section */}
         {pendingRewards && pendingRewards.length > 0 && (
-          <div className="mt-8 w-full text-white">
-            <h2 className="text-xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
-              🎁 Pending Rewards
-            </h2>
-            <div className="grid grid-cols-1 gap-4">
-              {pendingRewards.map((reward) => (
+        <div className="mt-8 w-full text-white">
+          <h2 className="text-xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
+             Pending Rewards
+          </h2>
+          <div className="grid grid-cols-1 gap-4">
+            {pendingRewards
+              .filter((r) => !r.redeemed)
+              .map((reward) => (
                 <div
                   key={reward.id}
                   className="bg-gradient-to-br from-gray-700 to-gray-800 p-4 rounded-2xl shadow-lg flex items-center justify-between"
                 >
                   <div className="flex items-center gap-4">
-                    {/* Optional image fallback: add if you start using reward.image */}
-                    {/* <img src={reward.image} alt={reward.rewardName} className="w-12 h-12 object-cover rounded-lg" /> */}
                     <div>
                       <p className="text-lg font-semibold text-white">{reward.rewardName}</p>
                       <p className="text-sm text-yellow-400">{reward.cost} pts</p>
                     </div>
                   </div>
 
-                  <button
-                    onClick={async () => await db.pendingRewards.delete(reward.id!)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-all duration-200"
-                  >
-                    ✅ Cash In
-                  </button>
+                  {reward.requestedForCashIn ? (
+                    <span className="text-yellow-400 font-semibold">⏳ Pending</span>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        const confirmed = window.confirm("Are you sure you want to cash in this reward?");
+                        if (confirmed) {
+                          await db.pendingRewards.update(reward.id!, { requestedForCashIn: true });
+                        }
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-all duration-200"
+                    >
+                      Cash In
+                    </button>
+                  )}
                 </div>
               ))}
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
 
         <div className="mt-25">
@@ -507,7 +585,16 @@ const handleSubmitWorkbook = async (bookId: number) => {
                       {chore.title}
                     </p>
 
-                    <p className="text-sm text-yellow-300 mt-1">{chore.points} pts</p>
+                    <p className="text-sm mt-1">
+                      <span className="text-yellow-300">
+                        {thisKidAssignment?.partialPoints
+                          ? `${Math.floor(chore.points / 2)} pts`
+                          : `${chore.points} pts`}
+                      </span>
+                      {thisKidAssignment?.partialPoints && (
+                        <span className="text-yellow-400 italic"> (Partial Credit)</span>
+                      )}
+                    </p>
 
                     {label && <p className="text-sm text-white">{label}</p>}
                   </div>

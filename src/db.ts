@@ -20,6 +20,7 @@ export interface PendingReward {
   cost: number;
   redeemedAt: string;
   redeemed?: boolean;
+  requestedForCashIn: boolean;
 }
 
 export class ChoreDB extends Dexie {
@@ -35,7 +36,7 @@ export class ChoreDB extends Dexie {
 
   constructor() {
     super('ChoreDatabase');
-    this.version(2).stores({
+    this.version(3).stores({
       choreTemplates: '++id, title, points',
       extraChoreTemplates: '++id, title, points',
       extraChoreAssignments: '++id, choreId, assignedTo, date, status', 
@@ -43,7 +44,7 @@ export class ChoreDB extends Dexie {
       choreStatuses: 'id, kidId, choreId, date, status',
       woodBooks: '++id, title, points',
       workbookAssignments: '++id, workBookId, kidId, date, status',
-      pendingRewards: '++id, kidId, rewardName, cost, redeemedAt, redeemed',
+      pendingRewards: '++id, kidId, rewardName, cost, redeemedAt, redeemed, requestedForCashIn',
       kidWorkbookPointOverrides: '++id, kidId, workBookId', 
     });
   }

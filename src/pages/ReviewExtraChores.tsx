@@ -39,16 +39,16 @@ const ReviewExtraChores: React.FC = () => {
     if (!kid || !chore) return;
 
     if (status === 'approved') {
+      const basePoints = chore.points;
+      const awardedPoints = assignment.partialPoints ? Math.floor(basePoints / 2) : basePoints;
+
       await db.kidProfiles.update(kid.id, {
-        points: kid.points + chore.points,
-        lifetimePoints: (kid.lifetimePoints || 0) + chore.points,
-        completedChores: (kid.completedChores || 0) + 1,
-      });
-    } else {
-      await db.kidProfiles.update(kid.id, {
-        rejectedChores: (kid.rejectedChores || 0) + 1,
+        points: (kid.points ?? 0) + awardedPoints,
+        lifetimePoints: (kid.lifetimePoints ?? 0) + awardedPoints,
+        completedChores: (kid.completedChores ?? 0) + 1,
       });
     }
+
 
     setAssignments(await db.extraChoreAssignments.where('date').equals(todayDate).toArray());
   };
@@ -112,7 +112,15 @@ const ReviewExtraChores: React.FC = () => {
                       <p className="text-lg font-bold text-white">
                         {kid.avatar} {kid.name} — <span className="text-yellow-300">{chore.title}</span>
                       </p>
-                      <p className="text-sm text-white">{chore.points} pts • {label}</p>
+                      <p className="text-sm text-white">
+                        {a.partialPoints ? (
+                          <span>
+                            {Math.floor(chore.points / 2)} pts • {label} <span className="italic text-yellow-300">(Partial Credit)</span>
+                          </span>
+                        ) : (
+                          <>{chore.points} pts • {label}</>
+                        )}
+                      </p>
                     </div>
 
                     {/* Review Actions */}

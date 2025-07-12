@@ -163,16 +163,16 @@ const ReviewWorkbook: React.FC = () => {
               const override = overrides.find(o => o.kidId === kid.id && o.workBookId === book.id); 
 
               let bg = 'bg-gray-700';
-              let label = '⏳ Pending';
+              let label = ' Pending';
               if (a.status === 'approved') {
                 bg = 'bg-green-600';
-                label = '✅ Approved';
+                label = ' Approved';
               } else if (a.status === 'rejected') {
                 bg = 'bg-red-600';
-                label = '❌ Rejected';
+                label = ' Rejected';
               } else if (a.status === 'submitted') {
                 bg = 'bg-yellow-600';
-                label = '📨 Submitted';
+                label = ' Submitted';
               }
 
               return (

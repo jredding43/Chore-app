@@ -49,26 +49,37 @@ export const PointsStore: React.FC = () => {
   const handleRedeem = async (item: RewardItem) => {
     if (!kid) return;
 
-    await db.pendingRewards.add({
-    kidId: kid.id,
-    rewardName: item.name,
-    cost: item.cost,
-    redeemedAt: new Date().toISOString()
-    });
+    const currentPoints = kid.points ?? 0;
 
+    if (currentPoints >= item.cost) {
+      const newPoints = currentPoints - item.cost;
 
-    if ((kid.points ?? 0) >= item.cost) {
-      const newPoints = (kid.points ?? 0) - item.cost;
+      // Update kid points
       await db.kidProfiles.update(kid.id, { points: newPoints });
       setKid({ ...kid, points: newPoints });
-      setMessage(` You redeemed "${item.name}" for ${item.cost} points!`);
+
+      // Add reward (not yet requested for cash-in)
+      await db.pendingRewards.add({
+        kidId: kid.id, 
+        rewardName: item.name,
+        cost: item.cost,
+        redeemedAt: new Date().toISOString(),
+        redeemed: false,
+        requestedForCashIn: false,
+      });
+
+      setMessage(`You redeemed "${item.name}" for ${item.cost} points!`);
     } else {
-      setMessage(` Not enough points for "${item.name}".`);
+      setMessage(`Not enough points for "${item.name}".`);
     }
   };
 
   if (!kid) {
-    return <div className="p-6 text-center text-white text-lg">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-lg">Loading kid info...</p>
+      </div>
+    );
   }
 
  return (
@@ -96,20 +107,26 @@ export const PointsStore: React.FC = () => {
             key={item.id}
             className="bg-gray-700 rounded-2xl shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300"
           >
-
             <h2 className="text-xl font-bold text-white">{item.name}</h2>
             <p className="text-sm text-gray-300 mb-2">{item.description}</p>
             <p className="text-yellow-300 font-bold text-lg">{item.cost} points</p>
+
             <button
-              onClick={() => handleRedeem(item)}
+              onClick={() => {
+                const confirmed = window.confirm("Are you sure you want to redeem this reward?");
+                if (confirmed) {
+                  handleRedeem(item);
+                }
+              }}
               disabled={(kid.points ?? 0) < item.cost}
               className="mt-4 px-4 py-2 rounded-xl bg-yellow-400 text-black font-bold hover:bg-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
-              Redeem
+              Purchase Reward
             </button>
           </div>
         ))}
       </div>
+
 
       <div className="mt-12 text-center">
         <button

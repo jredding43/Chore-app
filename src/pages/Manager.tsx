@@ -5,7 +5,6 @@ import { KidProfile } from '../types/kids';
 import { WoodBook } from '../types/workbooks';
 import { db } from '../db';
 import { ExtraChoreTemplate } from '../types/extrachores';
-import { SectionList } from '../components/SectionList';
 import { Navigation } from '../components/Navigation';
 
 const daysOfWeek = [
@@ -22,9 +21,7 @@ const daysOfWeek = [
 const Manager: React.FC = () => {
   const navigate = useNavigate();
   const [chores, setChores] = useState<ChoreTemplate[]>([]);
-  const [extraChores, setExtraChores] = useState<ExtraChoreTemplate[]>([]);
   const [kids, setKids] = useState<KidProfile[]>([]);
-  const [workbooks, setWorkbooks] = useState<WoodBook[]>([]);
 
   const [title, setTitle] = useState('');
   const [points, setPoints] = useState<number>(1);
@@ -38,6 +35,24 @@ const Manager: React.FC = () => {
   const [authorized, setAuthorized] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const correctPin = '012018'; 
+
+  const [editingChore, setEditingChore] = useState<ChoreTemplate | null>(null);
+  const [editChoreTitle, setEditChoreTitle] = useState('');
+  const [editChorePoints, setEditChorePoints] = useState(1);
+
+  const [workbooks, setWorkbooks] = useState<WoodBook[]>([]);
+  const [extraChores, setExtraChores] = useState<ExtraChoreTemplate[]>([]);
+  const [editingWorkbookId, setEditingWorkbookId] = useState<number | null>(null);
+  const [editingExtraChoreId, setEditingExtraChoreId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPoints, setEditPoints] = useState(1);
+
+  const [editingKidId, setEditingKidId] = useState<string | null>(null);
+  const [editKidName, setEditKidName] = useState('');
+  const [editKidAvatar, setEditKidAvatar] = useState('🧒');
+  const [editKidPin, setEditKidPin] = useState('');
+
+
   
 
   useEffect(() => {
@@ -49,6 +64,89 @@ const Manager: React.FC = () => {
     };
     load();
   }, []);
+
+  const handleUpdateKid = async () => {
+    if (!editingKidId || !editKidName.trim()) return;
+
+    await db.kidProfiles.update(editingKidId, {
+      name: editKidName.trim(),
+      avatar: editKidAvatar,
+      pin: editKidPin.trim(),
+    });
+
+    setKids(await db.kidProfiles.toArray());
+    setEditingKidId(null);
+    setEditKidName('');
+    setEditKidAvatar('🧒');
+    setEditKidPin('');
+  };
+
+
+  const handleEditChore = (chore: ChoreTemplate) => {
+    setEditingChore(chore);
+    setEditChoreTitle(chore.title);
+    setEditChorePoints(chore.points);
+  };
+
+  const handleUpdateChore = async () => {
+    if (!editingChore) return;
+
+    await db.choreTemplates.update(editingChore.id, {
+      title: editChoreTitle,
+      points: editChorePoints,
+    });
+
+    setChores(await db.choreTemplates.toArray());
+    setEditingChore(null);
+    setEditChoreTitle('');
+    setEditChorePoints(1);
+  };
+
+   const startEditWorkbook = (wb: WoodBook) => {
+    setEditingWorkbookId(wb.id);
+    setEditTitle(wb.title);
+  };
+
+  const updateWorkbook = async () => {
+    if (!editTitle.trim() || !editingWorkbookId) return;
+    await db.woodBooks.update(editingWorkbookId, {
+      title: editTitle.trim(),
+      points: editPoints,
+    });
+    setWorkbooks(await db.woodBooks.toArray());
+    setEditingWorkbookId(null);
+  };
+
+  const deleteWorkbook = async (id: number, title: string) => {
+    if (confirm(`Are you sure you want to delete workbook "${title}"?`)) {
+      await db.woodBooks.delete(id);
+      setWorkbooks(await db.woodBooks.toArray());
+    }
+  };
+
+  const startEditExtraChore = (chore: ExtraChoreTemplate) => {
+    setEditingExtraChoreId(chore.id);
+    setEditTitle(chore.title);
+    setEditPoints(chore.points);
+  };
+
+  const updateExtraChore = async () => {
+    if (!editTitle.trim() || !editingExtraChoreId) return;
+    await db.extraChoreTemplates.update(editingExtraChoreId, {
+      title: editTitle.trim(),
+      points: editPoints,
+    });
+    setExtraChores(await db.extraChoreTemplates.toArray());
+    setEditingExtraChoreId(null);
+  };
+
+  const deleteExtraChore = async (id: number, title: string) => {
+    if (confirm(`Are you sure you want to delete extra chore "${title}"?`)) {
+      await db.extraChoreTemplates.delete(id);
+      setExtraChores(await db.extraChoreTemplates.toArray());
+    }
+  };
+
 
   const handleAddChore = async () => {
     if (title.trim() === '' || points <= 0) return;
@@ -86,10 +184,7 @@ const Manager: React.FC = () => {
     setPoints(1);
   };
 
-  const handleExtraDeleteChore = async (id: number) => {
-    await db.extraChoreTemplates.delete(id);
-    setExtraChores(await db.extraChoreTemplates.toArray());
-  };
+
 
     const handleAddKid = async () => {
       if (!kidName.trim()) return;
@@ -124,11 +219,6 @@ const Manager: React.FC = () => {
       setAvatar('');
     };
 
-  const handleDeleteKid = async (id: string) => {
-    await db.kidProfiles.delete(id);
-    setKids(await db.kidProfiles.toArray());
-  };
-
   const handleAddWorkbook = async () => {
     if (!workbookTitle.trim()) return;
 
@@ -144,10 +234,6 @@ const Manager: React.FC = () => {
     setPoints(1);
   };
 
-  const handleDeleteWorkbook = async (id: number) => {
-    await db.woodBooks.delete(id);
-    setWorkbooks(await db.woodBooks.toArray());
-  };
 
   const handleCycleAssignment = async (choreId: number, dayKey: string) => {
     const chore = chores.find(c => c.id === choreId);
@@ -299,72 +385,292 @@ const Manager: React.FC = () => {
     ))}
   </div>
 
+  <section className="bg-gray-800 rounded-xl p-6 shadow-xl max-w-4xl mx-auto mb-10">
+    <h2 className="text-xl font-semibold text-pink-300 mb-4">👧 Kids</h2>
+    <ul className="space-y-4">
+      {kids.map(kid => (
+        <li key={kid.id} className="bg-gray-700 p-4 rounded-xl">
+          {editingKidId === kid.id ? (
+            <div className="space-y-3">
+              <input
+                className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                value={editKidName}
+                onChange={e => setEditKidName(e.target.value)}
+                placeholder="Kid's Name"
+              />
+              <select
+                className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                value={editKidAvatar}
+                onChange={e => setEditKidAvatar(e.target.value)}
+              >
+                {['🧒', '👧', '👦', '👶', '🧑'].map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <input
+                className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                value={editKidPin}
+                onChange={e => setEditKidPin(e.target.value)}
+                placeholder="New PIN"
+              />
+              <div className="flex gap-4">
+                <button
+                  onClick={handleUpdateKid}
+                  className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingKidId(null)}
+                  className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-lg font-bold">{kid.avatar} {kid.name}</p>
+                <p className="text-sm text-gray-300">Points: {kid.points} | Lifetime: {kid.lifetimePoints}</p>
+                <p className="text-sm text-gray-400">PIN: {kid.pin}</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setEditingKidId(kid.id);
+                    setEditKidName(kid.name);
+                    setEditKidPin(kid.pin);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to delete ${kid.name}?`)) {
+                      db.kidProfiles.delete(kid.id).then(() => {
+                        db.kidProfiles.toArray().then(setKids);
+                      });
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg text-sm"
+                >
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+
+
   {/* Chores List */}
   <section className="bg-gray-800 rounded-3xl p-6 shadow-xl max-w-4xl mx-auto mb-10">
     <h2 className="text-2xl font-semibold text-green-300 mb-4">📝 Chores</h2>
     <ul className="space-y-4">
       {chores.map(chore => (
         <li key={chore.id} className="bg-gray-700 p-4 rounded-xl shadow">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-lg font-bold">{chore.title}</p>
-              <p className="text-sm text-white">{chore.points} pts</p>
-            </div>
-            <button
-              onClick={() => handleDeleteChore(chore.id)}
-              className="text-red-400 hover:underline text-sm"
-            >
-              Delete
-            </button>
-          </div>
-          <div className="mt-2">
-            <p className="text-sm text-gray-400">Assign to Days:</p>
-            <div className="grid grid-cols-7 gap-1 mt-1">
-              {daysOfWeek.map(({ label, key }) => (
+          {editingChore?.id === chore.id ? (
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={editChoreTitle}
+                onChange={e => setEditChoreTitle(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                placeholder="Chore Title"
+              />
+              <input
+                type="number"
+                value={editChorePoints}
+                onChange={e => setEditChorePoints(parseInt(e.target.value))}
+                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                placeholder="Points"
+              />
+              <div className="flex flex-wrap gap-4 mt-2">
                 <button
-                  key={key}
-                  onClick={() => handleCycleAssignment(chore.id, key)}
-                  className="bg-indigo-600 hover:bg-indigo-500 rounded-lg px-2 py-1 text-white text-sm font-bold"
+                  onClick={handleUpdateChore}
+                  className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg"
                 >
-                  {(() => {
-                    const assignedId = chore.weeklyAssignment?.[key];
-                    if (!assignedId) return label;
-                    const kid = kids.find(k => k.id === assignedId);
-                    return kid ? kid.name.charAt(0) : label;
-                  })()}
+                  Save
                 </button>
-              ))}
+                <button
+                  onClick={() => setEditingChore(null)}
+                  className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-lg font-bold">{chore.title}</p>
+                  <p className="text-sm text-white">{chore.points} pts</p>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <button
+                    onClick={() => handleEditChore(chore)}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded-lg text-sm"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Are you sure you want to delete "${chore.title}"?`)) {
+                        handleDeleteChore(chore.id);
+                      }
+                    }}
+                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-1 rounded-lg text-sm"
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-sm text-gray-400">Assign to Days:</p>
+                <div className="grid grid-cols-7 gap-2 mt-2">
+                  {daysOfWeek.map(({ label, key }) => (
+                    <button
+                      key={key}
+                      onClick={() => handleCycleAssignment(chore.id, key)}
+                      className="bg-indigo-600 hover:bg-indigo-500 rounded-lg px-2 py-1 text-white text-sm font-bold"
+                    >
+                      {(() => {
+                        const assignedId = chore.weeklyAssignment?.[key];
+                        if (!assignedId) return label;
+                        const kid = kids.find(k => k.id === assignedId);
+                        return kid ? kid.name.charAt(0) : label;
+                      })()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </li>
       ))}
     </ul>
   </section>
 
-  {/* Lists for Kids, Workbooks, Extra Chores */}
-  <SectionList
-    title=" All Kids"
-    items={kids}
-    display={kid => `${kid.avatar} ${kid.name}`}
-    sub={kid => `Points: ${kid.points}`}
-    deleteFunc={handleDeleteKid}
-  />
 
-  <SectionList
-    title=" All Workbooks"
-    items={workbooks}
-    display={wb => wb.title}
-    sub={wb => `${wb.points} pts`}
-    deleteFunc={handleDeleteWorkbook}
-  />
 
-  <SectionList
-    title=" Extra Chores"
-    items={extraChores}
-    display={ec => ec.title}
-    sub={ec => `${ec.points} pts`}
-    deleteFunc={handleExtraDeleteChore}
-  />
+   <section className="bg-gray-800 rounded-xl p-6 shadow-xl max-w-4xl mx-auto mb-10">
+        <h2 className="text-xl font-semibold text-green-300 mb-4">📘 Workbooks</h2>
+        <ul className="space-y-4">
+          {workbooks.map(wb => (
+            <li key={wb.id} className="bg-gray-700 p-4 rounded-xl">
+              {editingWorkbookId === wb.id ? (
+                <div className="space-y-2">
+                  <input
+                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                    value={editPoints}
+                    onChange={e => setEditPoints(Number(e.target.value))}
+                  />
+                  <div className="flex gap-4">
+                    <button
+                      onClick={updateWorkbook}
+                      className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingWorkbookId(null)}
+                      className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-lg font-bold">{wb.title}</p>
+                    <p className="text-sm">{wb.points} pts</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => startEditWorkbook(wb)}
+                      className="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-lg"
+                    >✏️ Edit</button>
+                    <button
+                      onClick={() => deleteWorkbook(wb.id, wb.title)}
+                      className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded-lg"
+                    >🗑️ Delete</button>
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="bg-gray-800 rounded-xl p-6 shadow-xl max-w-4xl mx-auto mb-10">
+        <h2 className="text-xl font-semibold text-yellow-300 mb-4">⚡ Extra Chores</h2>
+        <ul className="space-y-4">
+          {extraChores.map(chore => (
+            <li key={chore.id} className="bg-gray-700 p-4 rounded-xl">
+              {editingExtraChoreId === chore.id ? (
+                <div className="space-y-2">
+                  <input
+                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                    value={editPoints}
+                    onChange={e => setEditPoints(Number(e.target.value))}
+                  />
+                  <div className="flex gap-4">
+                    <button
+                      onClick={updateExtraChore}
+                      className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingExtraChoreId(null)}
+                      className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-lg font-bold">{chore.title}</p>
+                    <p className="text-sm">{chore.points} pts</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => startEditExtraChore(chore)}
+                      className="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-lg"
+                    >✏️ Edit</button>
+                    <button
+                      onClick={() => deleteExtraChore(chore.id, chore.title)}
+                      className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded-lg"
+                    >🗑️ Delete</button>
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 </main>
 
   );
