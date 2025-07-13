@@ -7,8 +7,8 @@ const links = [
   { path: '/chorelist', label: 'Manager' },
   { path: '/review', label: 'Review Chores' },
   { path: '/workbook', label: 'Review Workbooks' },
-  { path: '/extrachores', label: 'Extra Chores' },
-  { path: '/rewards', label: 'Rewards' },
+  { path: '/extrachores', label: 'Review Extra Chores' },
+  { path: '/rewards', label: 'Review Rewards' },
   { path: '/store', label: 'Store Manager' },
 ];
 
