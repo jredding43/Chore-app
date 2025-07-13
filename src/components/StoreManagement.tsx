@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RewardItem } from '../types/Rewards';
 import { db } from '../db';
+import { Plus, Trash2, Save, Navigation } from 'lucide-react'; // optional icons
 
 export const StoreManagement: React.FC = () => {
-  const navigate = useNavigate();
   const [items, setItems] = useState<RewardItem[]>([]);
+  const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -24,7 +24,7 @@ export const StoreManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    const confirm = window.confirm('Are you sure you want to delete this reward?');
+    const confirm = window.confirm('Delete this reward?');
     if (!confirm) return;
 
     await db.rewardItems.delete(id);
@@ -43,61 +43,86 @@ export const StoreManagement: React.FC = () => {
         image: '',
       },
     ]);
+    setExpandedItemId(newId);
   };
 
   const handleSave = async () => {
     await db.rewardItems.bulkPut(items);
-    alert('Reward store updated!');
+    alert('Rewards saved!');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-white p-6 sm:p-10">
+
+    {/* Top Navigation */}
+    <div className="mb-4">
+    <Navigation />
+    </div>
+    
       <div className="max-w-7xl mx-auto bg-gray-900 rounded-3xl shadow-2xl p-6 sm:p-10">
         <h1 className="text-4xl font-extrabold text-green-400 text-center mb-8 drop-shadow">
-          Manage Reward Store
+           Reward Store Manager
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {items.map(item => (
-            <div key={item.id} className="relative bg-gray-800 rounded-2xl p-6 shadow-lg space-y-4">
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="absolute top-2 right-2 text-red-400 hover:text-red-300 text-lg"
+            <div
+              key={item.id}
+              className="rounded-2xl bg-gray-800 hover:ring-1 hover:ring-green-400 shadow-lg transition p-4"
+            >
+              <div
+                onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
+                className="cursor-pointer flex justify-between items-center"
               >
-                ✖
-              </button>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-300">Reward Name</label>
-                <input
-                  type="text"
-                  value={item.name}
-                  onChange={e => handleChange(item.id, 'name', e.target.value)}
-                  className="w-full p-2 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring focus:ring-green-400"
-                  placeholder="e.g., Movie Night"
-                />
+                <h2 className="text-lg font-semibold text-white">
+                  {item.name || <span className="italic text-gray-400">Untitled Reward</span>}
+                </h2>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item.id);
+                  }}
+                  className="text-red-400 hover:text-red-200"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-300">Description</label>
-                <textarea
-                  value={item.description}
-                  onChange={e => handleChange(item.id, 'description', e.target.value)}
-                  className="w-full p-2 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring focus:ring-green-400"
-                  placeholder="Describe what this reward includes..."
-                />
-              </div>
+              {expandedItemId === item.id && (
+                <div className="mt-4 space-y-3 animate-fade-in">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Reward Name</label>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={e => handleChange(item.id, 'name', e.target.value)}
+                      className="w-full p-2 rounded-xl bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring focus:ring-green-400"
+                      placeholder="e.g., Movie Night"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-300">Cost (Points)</label>
-                <input
-                  type="number"
-                  value={item.cost}
-                  onChange={e => handleChange(item.id, 'cost', e.target.value)}
-                  className="w-full p-2 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring focus:ring-green-400"
-                  placeholder="e.g., 250"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Description</label>
+                    <textarea
+                      value={item.description}
+                      onChange={e => handleChange(item.id, 'description', e.target.value)}
+                      className="w-full p-2 rounded-xl bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring focus:ring-green-400"
+                      placeholder="e.g., 1 movie of your choice"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Point Cost</label>
+                    <input
+                      type="number"
+                      value={item.cost}
+                      onChange={e => handleChange(item.id, 'cost', e.target.value)}
+                      className="w-full p-2 rounded-xl bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring focus:ring-green-400"
+                      placeholder="e.g., 250"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -105,22 +130,17 @@ export const StoreManagement: React.FC = () => {
         <div className="mt-10 flex justify-center flex-wrap gap-4">
           <button
             onClick={handleAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition shadow"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-xl flex items-center gap-2 shadow"
           >
-            + Add Reward
+            <Plus size={18} /> Add Reward
           </button>
           <button
             onClick={handleSave}
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-2 rounded-xl transition shadow"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-2 rounded-xl flex items-center gap-2 shadow"
           >
-            Save Changes
+            <Save size={18} /> Save Changes
           </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition shadow"
-          >
-            ← Back
-          </button>
+
         </div>
       </div>
     </div>
