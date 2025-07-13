@@ -150,7 +150,7 @@ const Calendar: React.FC = () => {
                         {/* ✅ Daily Chores */}
                         {summary.completed.filter(item => !item.title.startsWith('📘') && !item.title.startsWith('✨')).length > 0 && (
                           <div>
-                            <h4 className="text-green-400 font-semibold mb-1">✅ Daily Chores</h4>
+                            <h4 className="text-green-400 font-semibold mb-1"> Daily Chores</h4>
                             {summary.completed
                               .filter(item => !item.title.startsWith('📘') && !item.title.startsWith('✨'))
                               .map((item, idx) => (
@@ -164,7 +164,7 @@ const Calendar: React.FC = () => {
                         {/* ⚠️ Not Completed */}
                         {summary.notCompleted.length > 0 && (
                           <div>
-                            <h4 className="text-orange-400 font-semibold mb-1">⚠️ Not Completed</h4>
+                            <h4 className="text-orange-400 font-semibold mb-1"> Not Completed</h4>
                             {summary.notCompleted.map((title, idx) => (
                               <p key={idx} className="text-orange-300">⚠️ {title}</p>
                             ))}
@@ -174,7 +174,7 @@ const Calendar: React.FC = () => {
                         {/* ❌ Rejected */}
                         {summary.rejected.length > 0 && (
                           <div>
-                            <h4 className="text-red-400 font-semibold mb-1">❌ Rejected</h4>
+                            <h4 className="text-red-400 font-semibold mb-1"> Rejected</h4>
                             {summary.rejected.map((title, idx) => (
                               <p key={idx} className="text-red-300">❌ {title}</p>
                             ))}
@@ -184,7 +184,7 @@ const Calendar: React.FC = () => {
                         {/* 📘 Workbooks */}
                         {summary.completed.filter(item => item.title.startsWith('📘')).length > 0 && (
                           <div>
-                            <h4 className="text-blue-400 font-semibold mb-1">📘 Workbooks</h4>
+                            <h4 className="text-blue-400 font-semibold mb-1"> Workbooks</h4>
                             {summary.completed
                               .filter(item => item.title.startsWith('📘'))
                               .map((item, idx) => (
