@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { db, ChoreStatus } from '../db';
 import { ChoreTemplate } from '../types/chore';
 import { KidProfile } from '../types/kids';
@@ -7,7 +6,6 @@ import { Navigation } from '../components/Navigation';
 
 
 const ReviewChores: React.FC = () => {
-  const navigate = useNavigate();
   const [chores, setChores] = useState<ChoreTemplate[]>([]);
   const [kids, setKids] = useState<KidProfile[]>([]);
   const [reviewStatus, setReviewStatus] = useState<{ [key: string]: 'completed' | 'rejected' | 'not completed'}>({});
@@ -106,6 +104,62 @@ const ReviewChores: React.FC = () => {
     setKids(await db.kidProfiles.toArray());
   };
 
+  const handleResetChores = async () => {
+    const confirmReset = window.confirm(
+      " This will delete all saved chore review statuses and revert points and stats for today.\n\nAre you sure you want to reset everything?"
+    );
+
+    if (!confirmReset) return;
+
+    // 1. Delete today's chore statuses
+    const statuses = await db.choreStatuses.where('date').equals(todayDate).toArray();
+    const idsToDelete = statuses.map(s => s.id);
+    await db.choreStatuses.bulkDelete(idsToDelete);
+
+    // 2. Revert kid stats
+    const kidsToUpdate = await db.kidProfiles.toArray();
+
+    for (const kid of kidsToUpdate) {
+      const kidStatuses = statuses.filter(s => s.kidId === kid.id);
+
+      let pointsToRevert = 0;
+      let completed = 0;
+      let rejected = 0;
+      let notCompleted = 0;
+
+      for (const s of kidStatuses) {
+        const chore = chores.find(c => c.id === s.choreId);
+        if (!chore) continue;
+
+        if (s.status === 'completed') {
+          const bonus = kid.name === 'Keira' ? 5 : 0;
+          pointsToRevert += (chore.points + bonus);
+          completed += 1;
+        }
+        if (s.status === 'rejected') rejected += 1;
+        if (s.status === 'not completed') {
+          pointsToRevert -= 1;
+          notCompleted += 1;
+        }
+      }
+
+      await db.kidProfiles.update(kid.id, {
+        points: Math.max((kid.points || 0) - pointsToRevert, 0),
+        lifetimePoints: Math.max((kid.lifetimePoints || 0) - pointsToRevert, 0),
+        completedChores: Math.max((kid.completedChores || 0) - completed, 0),
+        rejectedChores: Math.max((kid.rejectedChores || 0) - rejected, 0),
+        notCompletedChores: Math.max((kid.notCompletedChores || 0) - notCompleted, 0),
+      });
+    }
+
+    // 3. Refresh screen
+    setReviewStatus({});
+    setKids(await db.kidProfiles.toArray());
+
+    alert(" Chore review data has been reset for today.");
+  };
+
+
 
   // Group chores by assigned kid
   const choresByKid: { [kidId: string]: ChoreTemplate[] } = {};
@@ -136,20 +190,14 @@ const ReviewChores: React.FC = () => {
             Chores Assigned Today: {Object.keys(choresByKid).length}
           </p>
 
-          <div className="flex flex-col w-full gap-3 mt-auto">
-            <button
-              onClick={() => navigate('/chorelist')}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl shadow w-full"
-            >
-              ← Back to Manager
-            </button>
-            <button
-              onClick={() => navigate('/workbook')}
-              className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-xl shadow w-full"
-            >
-              Next ➜
-            </button>
-          </div>
+
+          <button
+            onClick={handleResetChores}
+            className="bg-red-700 hover:bg-red-600 text-white px-6 py-2 rounded-xl shadow w-full mt-4"
+          >
+             Reset Today's Chores
+          </button>
+
         </aside>
 
         {/* Main Chore Review Section */}
@@ -188,7 +236,7 @@ const ReviewChores: React.FC = () => {
                           </div>
 
                           {/* Actions + Rejection Note */}
-                          {!status && (
+                          {status !== 'completed' && status !== 'rejected' && (
                             <div className="flex flex-col gap-2 w-full sm:w-auto">
                               <div className="flex flex-wrap gap-2">
                                 <button

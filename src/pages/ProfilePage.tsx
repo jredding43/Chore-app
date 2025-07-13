@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KidProfile } from '../types/kids';
 import { ChoreTemplate } from '../types/chore';
-import { db, PendingReward, ChoreStatus } from '../db';
+import { db, PendingReward} from '../db';
 import { WoodBook, WorkbookAssignment } from '../types/workbooks';
 import { ExtraChoreTemplate, ExtraChoreAssignment } from '../types/extrachores';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -222,73 +222,12 @@ const handleSubmitWorkbook = async (bookId: number) => {
     );
   }
 
-  const toggleChoreCheck = async (choreId: number) => {
-    if (!kid) return;
-
-    const current = checkedChores[choreId];
-    const newChecked = !current;
-
-    setCheckedChores(prev => ({
-      ...prev,
-      [choreId]: newChecked,
-    }));
-
-    const status: ChoreStatus = {
-      id: `${kid.id}-${choreId}-${todayDate}`,
-      kidId: kid.id,
-      choreId,
-      date: todayDate,
-      status: newChecked ? 'completed' : 'not completed',
-    };
-
-    await db.choreStatuses.put(status);
-
-    const chore = todaysChores.find(c => c.id === choreId);
-    if (!chore) return;
-
-    const updatedKid = await db.kidProfiles.get(kid.id);
-    if (!updatedKid) return;
-
-    // Award points only if just completed now
-    if (newChecked && status.status === 'completed') {
-      const newPoints = (updatedKid.points ?? 0) + chore.points;
-      const newLifetime = (updatedKid.lifetimePoints ?? 0) + chore.points;
-      const completedChores = (updatedKid.completedChores ?? 0) + 1;
-
-      await db.kidProfiles.update(kid.id, {
-        points: newPoints,
-        lifetimePoints: newLifetime,
-        completedChores,
-      });
-
-      setKid({
-        ...updatedKid,
-        points: newPoints,
-        lifetimePoints: newLifetime,
-        completedChores,
-      });
-    }
-
-    // Optional: If chore was unchecked, revert stats
-    if (!newChecked && status.status === 'not completed') {
-      const newPoints = Math.max(0, (updatedKid.points ?? 0) - chore.points);
-      const newLifetime = Math.max(0, (updatedKid.lifetimePoints ?? 0) - chore.points);
-      const completedChores = Math.max(0, (updatedKid.completedChores ?? 0) - 1);
-
-      await db.kidProfiles.update(kid.id, {
-        points: newPoints,
-        lifetimePoints: newLifetime,
-        completedChores,
-      });
-
-      setKid({
-        ...updatedKid,
-        points: newPoints,
-        lifetimePoints: newLifetime,
-        completedChores,
-      });
-    }
-  };
+const toggleChoreCheck = (choreId: number) => {
+  setCheckedChores(prev => ({
+    ...prev,
+    [choreId]: !prev[choreId],
+  }));
+};
 
 
 
