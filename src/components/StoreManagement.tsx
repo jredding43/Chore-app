@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { RewardItem } from '../types/Rewards';
 import { db } from '../db';
-import { Plus, Trash2, Save, Navigation } from 'lucide-react'; // optional icons
+import { Plus, Trash2, Save} from 'lucide-react'; 
+import { Navigation } from '../components/Navigation'; 
+
+
 
 export const StoreManagement: React.FC = () => {
   const [items, setItems] = useState<RewardItem[]>([]);
