@@ -17,10 +17,10 @@ const rewardItems: RewardItem[] = [
   { id: 3, name: 'Medium McFlurry/Milkshake', description: 'Medium McFlurry or Milkshake', cost: 350, image: '🍧' }, // Once per week
   { id: 4, name: 'Movie Night', description: '1 Movie (you pick)', cost: 350, image: '🎬' }, // Once per week max
   { id: 5, name: 'Family Night', description: '1 Hour of family time (You pick)', cost: 300, image: '👨‍👩‍👧‍👦' },
-  { id: 6, name: 'Pool 2 Hours', description: '2 Hours at pool', cost: 70, image: '🏊‍♂️' }, // Can do 2–3x/week
-  { id: 7, name: 'Pool 4 Hours', description: '4 Hours at pool', cost: 100, image: '🏊‍♀️' }, // Daily reward possibility
-  { id: 8, name: 'Camp Fire', description: 'Fire with smores', cost: 250, image: '🔥' }, // Weekend
-  { id: 9, name: 'Free Time (Game/TV/Computer)', description: '1 hour of free time', cost: 150, image: '🕒' }, // Daily-ish
+  { id: 6, name: 'Pool 2 Hours', description: '2 Hours at pool', cost: 80, image: '🏊‍♂️' }, // Can do 2–3x/week
+  { id: 7, name: 'Pool 4 Hours', description: '4 Hours at pool', cost: 110, image: '🏊‍♀️' }, // Daily reward possibility
+  { id: 8, name: 'Camp Fire', description: 'Fire with smores', cost: 350, image: '🔥' }, // Weekend
+  { id: 9, name: 'Free Time (Game/TV/Computer)', description: '1 hour of free time', cost: 250, image: '🕒' }, // Daily-ish
   { id: 10, name: 'Bike Ride', description: '3 mile bike ride', cost: 200, image: '🚴' }, // 2–3x per week
   { id: 11, name: 'Beach', description: '2 hours at beach', cost: 400, image: '🏖️' }, // Weekend reward
   { id: 12, name: 'Movie Theater', description: '1 movie theater (max 1 per month)', cost:1500, image: '🍿' }, // Save-up item
