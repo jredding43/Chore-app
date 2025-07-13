@@ -8,6 +8,7 @@ const links = [
   { path: '/workbook', label: ' Review Workbooks' },
   { path: '/extrachores', label: ' Extra Chores' },
   { path: '/rewards', label: 'Rewards' },
+  { path: '/store', label: 'Store Manager' },
 ];
 
 export const Navigation: React.FC = () => {

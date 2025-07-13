@@ -3,6 +3,7 @@ import { ChoreTemplate } from './types/chore';
 import { KidProfile } from './types/kids';
 import { WoodBook, WorkbookAssignment, KidWorkbookPointOverride } from './types/workbooks'; 
 import { ExtraChoreTemplate, ExtraChoreAssignment } from './types/extrachores';
+import { RewardItem } from './types/Rewards';
 
 export interface ChoreStatus {
   id: string; 
@@ -33,6 +34,8 @@ export class ChoreDB extends Dexie {
   workbookAssignments!: Table<WorkbookAssignment, number>;
   pendingRewards!: Table<PendingReward, number>;
   kidWorkbookPointOverrides!: Table<KidWorkbookPointOverride, number>; 
+  rewardItems!: Table<RewardItem, number>;
+
 
   constructor() {
     super('ChoreDatabase');
@@ -46,6 +49,7 @@ export class ChoreDB extends Dexie {
       workbookAssignments: '++id, workBookId, kidId, date, status',
       pendingRewards: '++id, kidId, rewardName, cost, redeemedAt, redeemed, requestedForCashIn',
       kidWorkbookPointOverrides: '++id, kidId, workBookId', 
+      rewardItems: '++id, name, cost',
     });
   }
 }

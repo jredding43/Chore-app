@@ -10,6 +10,7 @@ import Calendar from "./pages/Calendar";
 import ReviewExtraChores from "./pages/ReviewExtraChores";
 import { PointsStore } from "./components/PointStore";
 import Rewards from "./pages/Rewards";
+import { StoreManagement } from "./components/StoreManagement";
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -38,6 +39,7 @@ const App: React.FC = () => {
           <Route path="/extrachores" element={<ReviewExtraChores />} />
           <Route path="/store/:id" element={<PointsStore />} />
           <Route path="/rewards" element={<Rewards />} />
+          <Route path="/store" element={<StoreManagement />} />
         </Routes>
       </Router>
     </HelmetProvider>
