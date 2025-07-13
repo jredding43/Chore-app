@@ -22,9 +22,9 @@ const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const [kids, setKids] = useState<KidProfile[]>([]);
   const [chores, setChores] = useState<ChoreTemplate[]>([]);
-  const [workbooks, setWorkbooks] = useState<WorkbookAssignment[]>([]);
-  const [extraAssignments, setExtraAssignments] = useState<ExtraChoreAssignment[]>([]);
-  const [extraChores, setExtraChores] = useState<ExtraChoreTemplate[]>([]);
+  const [, setWorkbooks] = useState<WorkbookAssignment[]>([]);
+  const [, setExtraAssignments] = useState<ExtraChoreAssignment[]>([]);
+  const [, setExtraChores] = useState<ExtraChoreTemplate[]>([]);
   const [kidSummaries, setKidSummaries] = useState<KidChoreSummary>({});
 
   const todayIndex = new Date().getDay();
