@@ -97,8 +97,9 @@ const ReviewChores: React.FC = () => {
 
     await db.kidProfiles.update(kidId, {
       notCompletedChores: (kid.notCompletedChores || 0) + 1,
-      points: Math.max((kid.points || 0) - 1, 0), 
+      points: Math.max((kid.points || 0) - chore.points, 0), 
     });
+
 
     await saveStatus(chore, kidId, 'not completed');
     setKids(await db.kidProfiles.toArray());
@@ -132,7 +133,7 @@ const ReviewChores: React.FC = () => {
         if (!chore) continue;
 
         if (s.status === 'completed') {
-          const bonus = kid.name === 'Keira' ? 5 : 0;
+          const bonus = kid.name === 'Keira' ? 0 : 0;
           pointsToRevert += (chore.points + bonus);
           completed += 1;
         }
