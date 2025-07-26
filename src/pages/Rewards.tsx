@@ -43,6 +43,33 @@ const RewardsPage: React.FC = () => {
       redeemedByKid[r.kidId].push(r);
     });
 
+const cancelReward = async (reward: PendingReward) => {
+  if (reward.id === undefined) {
+    console.error("Reward ID is undefined and cannot be canceled.");
+    return;
+  }
+
+  const confirmed = window.confirm("Are you sure you want to cancel this reward?");
+  if (!confirmed) return;
+
+  // Refund points to kid
+  const kid = kidsMap[reward.kidId];
+  if (kid) {
+    const updatedPoints = kid.points + reward.cost;
+    await db.kidProfiles.update(kid.id, { points: updatedPoints });
+    setKidsMap((prev) => ({
+      ...prev,
+      [kid.id]: { ...kid, points: updatedPoints },
+    }));
+  }
+
+  // Remove reward
+  await db.pendingRewards.delete(reward.id); // safe now
+  setPendingRewards((prev) => prev.filter((r) => r.id !== reward.id));
+};
+
+
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-6">
       <div className="mb-4">
@@ -159,7 +186,7 @@ const RewardsPage: React.FC = () => {
                       </p>
                     </div>
 
-                   <button
+                    <button
                     onClick={() => {
                       const confirmed = window.confirm("Are you sure you want to redeem this reward?");
                       if (confirmed) {
@@ -168,7 +195,14 @@ const RewardsPage: React.FC = () => {
                     }}
                     className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm"
                   >
-                    Redeem Reward
+                    Redeem
+                  </button>
+
+                  <button
+                    onClick={() => cancelReward(reward)}
+                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Cancel
                   </button>
                   </div>
                 );

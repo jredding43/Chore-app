@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Menu, X } from 'lucide-react'; // Requires `lucide-react` package
+import { Menu, X } from 'lucide-react';
 
 const links = [
   { path: '/', label: 'Home' },
