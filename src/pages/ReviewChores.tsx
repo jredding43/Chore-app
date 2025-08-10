@@ -63,7 +63,7 @@ const ReviewChores: React.FC = () => {
   if (!kid) return;
 
   // Add bonus for Keira
-  const bonus = kid.name === 'Keira' ? 5 : 0;
+  const bonus = kid.name === 'Keira' ? 0 : 0;
   const earnedPoints = chore.points + bonus;
 
   await db.kidProfiles.update(kidId, {

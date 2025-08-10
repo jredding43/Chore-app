@@ -97,9 +97,9 @@ const ReviewExtraChores: React.FC = () => {
               let bg = 'bg-gray-700';
               let label = '⏳ Not Submitted';
               if (a.status === 'approved') {
-                bg = 'bg-green-600'; label = '✅ Approved';
+                bg = 'bg-green-600'; label = ' Approved';
               } else if (a.status === 'rejected') {
-                bg = 'bg-red-600'; label = '❌ Rejected';
+                bg = 'bg-red-600'; label = ' Rejected';
               } else if (a.status === 'submitted' || a.status === 'pending') {
                 bg = 'bg-yellow-600'; label = '📨 Submitted';
               }
@@ -130,13 +130,13 @@ const ReviewExtraChores: React.FC = () => {
                           onClick={() => updateStatus(a, 'approved')}
                           className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-lg"
                         >
-                          ✅ Approve
+                          Approve
                         </button>
                         <button
                           onClick={() => updateStatus(a, 'rejected')}
                           className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg"
                         >
-                          ❌ Reject
+                           Reject
                         </button>
                       </div>
                     )}
